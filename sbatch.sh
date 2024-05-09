@@ -13,5 +13,5 @@
 module load anaconda
 conda activate ssm_project
 
-python import_dataset.py
-python baseline.py
+# python import_dataset.py
+python baselinellama.py
