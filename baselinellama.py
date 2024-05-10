@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from huggingface_hub import login
 # from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from torchmetrics.text import BLEUScore
+from rouge import Rouge
 
 # Load environment variables
 load_dotenv()
@@ -45,14 +46,14 @@ print('Data loaded successfully', data[0])
 wandb.finish()
 
 # Test on a small subset of two data points
-test_data = data[:5]
+# test_data = data[:5]
 
 # Prepare input text by concatenating 'original_text_text' and 'rewritten_text'
 prompt_text = "Generate only the prompt no more than 8 words used to convert the Original Text into Rewritten Text:"
-# inputs = [f"{item['original_text_text']} [SEP] {prompt_text} [SEP] {item['rewritten_text']}" for item in data]
-inputs = [f"Original Text: {item['original_text_text']} [SEP] Rewritten Text: {item['rewritten_text']} [SEP] {prompt_text}" for item in test_data]
-# targets = [item['instruction_text'] for item in data]
-targets = [item['instruction_text'] for item in test_data]
+inputs = [f"{item['original_text_text']} [SEP] {prompt_text} [SEP] {item['rewritten_text']}" for item in data]
+# inputs = [f"Original Text: {item['original_text_text']} [SEP] Rewritten Text: {item['rewritten_text']} [SEP] {prompt_text}" for item in test_data]
+targets = [item['instruction_text'] for item in data]
+# targets = [item['instruction_text'] for item in test_data]
 
 # Load tokenizer and model for Meta-Llama-3-8B-Instruct
 model_id = "meta-llama/Meta-Llama-3-8B-Instruct"
@@ -61,7 +62,6 @@ pipeline = transformers.pipeline(
     model=model_id,
     model_kwargs={"torch_dtype": torch.bfloat16},
     device="cuda" if torch.cuda.is_available() else "cpu",
-    # device_map="auto",
 )
 
 # Process and generate outputs
@@ -70,10 +70,11 @@ uni_bleu_scores = []
 bi_bleu_scores = []
 tri_bleu_scores = []
 
+
 uni_bleu = BLEUScore(n_gram=1)
 bi_bleu = BLEUScore(n_gram=2)
 tri_bleu = BLEUScore(n_gram=3)
-# smooth = SmoothingFunction().method1
+
 
 for i, (input_text, target_text) in enumerate(zip(inputs, targets)):
     # Generate the prompt using the chat template
@@ -89,11 +90,6 @@ for i, (input_text, target_text) in enumerate(zip(inputs, targets)):
         pipeline.tokenizer.eos_token_id,
         pipeline.tokenizer.convert_tokens_to_ids("<|eot_id|>")
     ]
-
-    # Ensure the eos_token_id is set
-    # model = pipeline.model
-    # if not hasattr(model.config, 'eos_token_id') or model.config.eos_token_id is None:
-    #     model.config.eos_token_id = model.config.pad_token_id
 
     # Generate output sequences
     output_sequences = pipeline(
@@ -113,26 +109,19 @@ for i, (input_text, target_text) in enumerate(zip(inputs, targets)):
     uni_bleu_score = uni_bleu([output_text], [[target_text]])
     bi_bleu_score = bi_bleu([output_text], [[target_text]])
     tri_bleu_score = tri_bleu([output_text], [[target_text]])
-    print(f"Data Point {i + 1} - Uni-gram BLEU: {uni_bleu_score.item()}, Bi-gram BLEU: {bi_bleu_score.item()}, Tri-gram BLEU: {tri_bleu_score.item()}")
-    # print(f"BLEU score for data point {i + 1}: {bleu_score.item()}")
-    # logging.info(f"BLEU score for data point {i + 1}: {bleu_score.item()}")
-    # bleu_scores.append(bleu_score.item())
+
+    # print(f"Data Point {i + 1} - Uni-gram BLEU: {uni_bleu_score.item()}, Bi-gram BLEU: {bi_bleu_score.item()}, Tri-gram BLEU: {tri_bleu_score.item()}")
     uni_bleu_scores.append(uni_bleu_score.item())
     bi_bleu_scores.append(bi_bleu_score.item())
     tri_bleu_scores.append(tri_bleu_score.item())
-    # bleu_score = bleu_metric([output_text], [target_text])
+
 # print('Outputs generated successfully')
 
 # Log results, optionally compare with targets
-for output, target in zip(outputs, targets):
-    logging.info(f"Expected: {target}")
-    logging.info(f"Generated: {output}")
-    logging.info("=================================================================\n\n")
-
-# Average BLEU score
-# average_bleu = sum(bleu_scores) / len(bleu_scores)
-# logging.info(f"Average BLEU score: {average_bleu}")
-# print(f"Average BLEU score: {average_bleu}")
+# for output, target in zip(outputs, targets):
+#     logging.info(f"Expected: {target}")
+#     logging.info(f"Generated: {output}")
+#     logging.info("=================================================================\n\n")
 
 # Average BLEU scores
 average_uni_bleu = sum(uni_bleu_scores) / len(uni_bleu_scores)
@@ -142,3 +131,13 @@ average_tri_bleu = sum(tri_bleu_scores) / len(tri_bleu_scores)
 print(f"Average Uni-gram BLEU score: {average_uni_bleu}")
 print(f"Average Bi-gram BLEU score: {average_bi_bleu}")
 print(f"Average Tri-gram BLEU score: {average_tri_bleu}")
+logging.info(f"Average Uni-gram BLEU score: {average_uni_bleu}")
+logging.info(f"Average Bi-gram BLEU score: {average_bi_bleu}")
+logging.info(f"Average Tri-gram BLEU score: {average_tri_bleu}")
+
+hyp, ref = outputs, targets
+rouge = Rouge()
+scores = rouge.get_scores(hyp, ref, avg=True)
+for key, value in scores.items():
+    print(f"{key}: {value}")
+    logging.info(f"{key}: {value}")
