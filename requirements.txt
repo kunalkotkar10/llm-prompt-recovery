@@ -2,3 +2,5 @@ torch
 wandb
 transformers
 python-dotenv
+nltk
+torchmetrics
