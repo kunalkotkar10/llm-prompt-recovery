@@ -12,6 +12,12 @@ from rouge import Rouge
 # Load environment variables
 load_dotenv()
 
+dataset_type = 'medium'
+
+# initialize logger and create name for the log file
+logging.basicConfig(filename=f'llama_baseline_{dataset_type}.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.getLogger().setLevel(logging.INFO)
+
 huggingface_token = os.getenv('HUGGINGFACE_TOKEN')
 if huggingface_token:
     print("Hugging Face token loaded successfully.")
@@ -26,7 +32,7 @@ print("Logged in to Hugging Face successfully.")
 from datasets import load_dataset
 
 # Load subset dataset from Hugging Face
-dataset = load_dataset("nrishabh/prompt-recovery", "minute", split="test")
+dataset = load_dataset("nrishabh/prompt-recovery", f"{dataset_type}", split="test")
 
 print(dataset[0])
 

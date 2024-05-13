@@ -10,6 +10,8 @@ from torchmetrics.text import BLEUScore
 from rouge import Rouge
 import pyreft
 
+dataset_size = 'minute'
+
 # Load environment variables
 load_dotenv()
 
@@ -27,7 +29,8 @@ print("Logged in to Hugging Face successfully.")
 from datasets import load_dataset
 
 # Load subset dataset from Hugging Face
-dataset = load_dataset("nrishabh/prompt-recovery", "medium-llama", split="train")
+dataset = load_dataset("nrishabh/prompt-recovery", f"{dataset_size}-llama", split="train")
+val_dataset = load_dataset("nrishabh/prompt-recovery", f"{dataset_size}-llama", split="validation")
 
 print(dataset[0])
 
@@ -66,6 +69,7 @@ reft_model = pyreft.get_reft_model(model, reft_config)
 reft_model.set_device(device)
 reft_model.print_trainable_parameters()
 
+# supervised ft
 data_module = pyreft.make_last_position_supervised_data_module(
     tokenizer, model, [row["prompt"] for row in dataset], 
     [row["completion"] for row in dataset])
@@ -77,7 +81,7 @@ training_args = transformers.TrainingArguments(
     per_device_train_batch_size = 4,
     gradient_accumulation_steps = 8,
     warmup_steps = 100,
-    num_train_epochs = 100.0,
+    num_train_epochs = 50.0,
     learning_rate = 4e-3,
     bf16 = True,
     logging_steps = 1,
@@ -88,14 +92,15 @@ training_args = transformers.TrainingArguments(
     report_to=[]
 )
 
-trainer = pyreft.ReftTrainerForCausalLM(model=reft_model, tokenizer=tokenizer, args=training_args, **data_module)
+trainer = pyreft.ReftTrainerForCausalLM(model=reft_model, 
+            tokenizer=tokenizer, args=training_args, **data_module)
 
 print("Training model")
 _ = trainer.train()
 
 # save model
 reft_model.save(
-    save_directory="./llama-finetuned-reft_large", 
+    save_directory=f"./llama-finetuned-reft_{dataset_size}", 
 )
 
 # trainer.push_to_hub(
@@ -105,7 +110,7 @@ reft_model.save(
 # )
 
 reft_model.save(
-    save_directory="./llama-finetuned-reft_large", 
+    save_directory=f"./llama-finetuned-reft_{dataset_size}", 
     save_to_hf_hub=True, 
     hf_repo_name="kkotkar1/llama3-reft"
 )

@@ -186,3 +186,6 @@ llama-finetuned/
 llama-finetuned-reft/
 outputs/
 output/
+*.bin
+*.pt
+*.json
