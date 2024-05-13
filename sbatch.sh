@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=78G
-#SBATCH --time=4:00:00
+#SBATCH --time=8:00:00
 #SBATCH --job-name="ssm-project-prompt-recovery-baseline"
 # the file where your output will be printed
 # writing %J will replace it with the job_id during runtime
@@ -25,7 +25,6 @@ module load anaconda
 # eval "$(conda shell.bash hook)"
 conda activate nlpproj
 
-# python import_dataset.py
-# python baselinellama.py
-# python finetune.py
-python masking.py
+# python baselinellama_hf.py
+python llama_reft.py
+# python llama_reft_try.py

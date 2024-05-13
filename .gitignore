@@ -183,3 +183,6 @@ fulldataset/
 
 # saved models dir
 llama-finetuned/
+llama-finetuned-reft/
+outputs/
+output/
