@@ -10,7 +10,7 @@ from torchmetrics.text import BLEUScore
 from rouge import Rouge
 import pyreft
 
-dataset_size = 'minute'
+dataset_size = 'medium'
 
 # Load environment variables
 load_dotenv()
