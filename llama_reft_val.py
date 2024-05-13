@@ -10,6 +10,8 @@ import pyreft
 # Load environment variables
 load_dotenv()
 
+dataset_size='medium'
+
 huggingface_token = os.getenv('HUGGINGFACE_TOKEN')
 if huggingface_token:
     print("Hugging Face token loaded successfully.")
@@ -23,7 +25,7 @@ print("Logged in to Hugging Face successfully.")
 
 # Load subset dataset from Hugging Face
 from datasets import load_dataset
-test_dataset = load_dataset("nrishabh/prompt-recovery", "minute-llama", split="test")
+test_dataset = load_dataset("nrishabh/prompt-recovery", f"{dataset_size}-llama", split="test")
 
 print(test_dataset[0])
 
@@ -35,8 +37,10 @@ model_name_or_path = "meta-llama/Meta-Llama-3-8B"
 model = transformers.AutoModelForCausalLM.from_pretrained(
     model_name_or_path, torch_dtype=torch.bfloat16, device_map=device)
 
+reft_model_name = f"llama-finetuned-reft_{dataset_size}"
+
 reft_model = pyreft.ReftModel.load(
-    "llama-finetuned-reft", model, from_huggingface_hub=False
+    "kkotkar1/llama3-reft", reft_model_name, from_huggingface_hub=True
 )
 
 reft_model.set_device(device)
