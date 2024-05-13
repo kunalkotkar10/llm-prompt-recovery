@@ -32,7 +32,7 @@ model = transformers.AutoModelForCausalLM.from_pretrained(
     model_name_or_path, torch_dtype=torch.bfloat16, device_map=device)
 
 reft_model = pyreft.ReftModel.load(
-    "llama-finetuned-reft-medium", model, from_huggingface_hub=False
+    "llama-finetuned-reft_minute", model, from_huggingface_hub=False
 )
 
 reft_model.set_device(device)
