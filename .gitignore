@@ -180,3 +180,6 @@ fulldataset/
 
 # sbatch files
 *.sh
+
+# saved models dir
+llama-finetuned/

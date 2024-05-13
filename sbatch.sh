@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem=36G
+#SBATCH --mem=78G
 #SBATCH --time=4:00:00
 #SBATCH --job-name="ssm-project-prompt-recovery-baseline"
 # the file where your output will be printed
@@ -26,4 +26,6 @@ module load anaconda
 conda activate nlpproj
 
 # python import_dataset.py
-python baselinellama.py
+# python baselinellama.py
+# python finetune.py
+python masking.py
